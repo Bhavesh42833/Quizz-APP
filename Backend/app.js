@@ -3,6 +3,7 @@ import cors from "cors"
 import dotenv from "dotenv"
 import user from "./Routes/User.js"
 import quiz from "./Routes/Quiz.js"
+import CookieParser from "cookie-parser" //impo
 
 dotenv.config(
     {
@@ -15,6 +16,7 @@ const app=express();
 
 app.use(express.json({limit:"50mb"}));
 app.use(express.urlencoded({limit:"50mb",extended:true}));
+app.use(CookieParser());
 
 app.use("/api/v1/user",user);
 app.use("/api/v1/quiz",quiz);

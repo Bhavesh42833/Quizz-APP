@@ -7,6 +7,7 @@ const QuizSchema = new mongoose.Schema(
       required: true,
     },
     description: {
+      default:"",
       type: String,
     },
     startTime: {
@@ -15,7 +16,7 @@ const QuizSchema = new mongoose.Schema(
     },
     endTime: {
       type: Date,
-      default: Date.now,
+      default: Date.now + 30 * 60 * 1000,
       validate: {
         validator: function (value) {
           return value > this.startTime;
@@ -30,12 +31,6 @@ const QuizSchema = new mongoose.Schema(
           ref: "Question",
         },
       ],
-      validate: {
-        validator: function (value) {
-          return value.length >= 1 && value.length <= 50;
-        },
-        message: "A quiz must have between 1 and 50 questions.",
-      },
     },
     creator: {
       type: mongoose.Schema.Types.ObjectId,

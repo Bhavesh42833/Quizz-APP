@@ -36,11 +36,11 @@ const QuestionSchema = new mongoose.Schema(
       },
     },
     answer: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: String,
       required: true,
       validate: {
         validator: function (value) {
-          return this.options.some((option) => option.id.equals(value));
+          return this.options.some((option) => option.text===(value));
         },
         message: "Answer must be one of the provided options.",
       },

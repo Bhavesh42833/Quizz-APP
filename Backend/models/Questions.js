@@ -49,6 +49,10 @@ const QuestionSchema = new mongoose.Schema(
       type: Number,
       default: 30 * 1000, 
     },
+    score:{
+      type: Number,
+      default: 1,
+    },
     user: [
       {
         userId: {

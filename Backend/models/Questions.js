@@ -53,21 +53,6 @@ const QuestionSchema = new mongoose.Schema(
       type: Number,
       default: 1,
     },
-    user: [
-      {
-        userId: {
-          type: mongoose.Schema.Types.ObjectId,
-          ref: "User",
-        },
-        isCorrect: {
-          type: Boolean,
-        },
-        submitTime: {
-          type: Date,
-          default: () => Date.now() + 30 * 1000,
-        },
-      },
-    ],
   },
   {
     timestamps: true, 

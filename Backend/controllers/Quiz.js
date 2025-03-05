@@ -5,11 +5,52 @@ import Server from "socket.io";
 import User from "../models/User.js";
 const activeQuiz={};
 
-const saveLeaderboard=(quizzId)=>{
-    for(let i=0;i<activeQuiz[quizzId].users.length;i++){
-        
+const createLeaderboard = (quizId) => {
+    if (!activeQuiz[quizId] || !activeQuiz[quizId].users) {
+        console.error("Quiz not found or no users available!");
+        return [];
     }
-}
+
+    return Object.entries(activeQuiz[quizId].users)
+        .map(([userId, details]) => ({
+            userId,
+            totalScore: details.totalScore,
+            totalSubmissionTime: details.totalSubmissionTime,
+            ques: details.ques 
+        }))
+        .sort((a, b) => {
+            if (b.totalScore !== a.totalScore) {
+                return b.totalScore - a.totalScore;
+            }
+            return a.totalSubmissionTime - b.totalSubmissionTime;
+        });
+};
+
+const saveLeaderboard = async (quizId) => {
+    try {
+        const leaderboard = createLeaderboard(quizId);
+
+        await Promise.all(leaderboard.map(async (data) => {
+            const user = await User.findById(data.userId);
+            if (!user) return;
+
+            if (!user.quiz.includes(quizId)) {
+                user.quiz.push(quizId);
+                await user.save();
+            }
+        }));
+
+        const quiz = await Quiz.findById(quizId);
+        if (!quiz) throw new Error("Quiz not found");
+
+        quiz.leaderboard = leaderboard;
+        await quiz.save();
+
+        console.log("Leaderboard saved successfully!");
+    } catch (error) {
+        console.error("Error saving leaderboard:", error);
+    }
+};
 export const createQuiz = async (req, res) => {
     try{
        const {title,description,startTime,endTime,questions}=req.body;
@@ -92,8 +133,8 @@ export const quizLive = async (req, res) => {
             socket.join(quizId);
             activeQuiz[quizId].users[userId] = {
                 username,
-                socketId: socket.id,
-                score: 0,
+                ques:[],
+                totalScore: 0,
                 totalSubmissionTime: 0, 
             };
 
@@ -112,7 +153,9 @@ export const quizLive = async (req, res) => {
                 if (quizData.currentQues >= quizData.questions.length) {
                     io.to(quizId).emit("quizEnd", {
                         message:"Thank you for participating in the quiz",
-                    }).then(()=>{saveLeaderboard(quizId)});
+                    });
+
+                    saveLeaderboard(quizId);
                     return;
                 }
 
@@ -122,7 +165,7 @@ export const quizLive = async (req, res) => {
                     question: ques.question,
                     options: ques.options,
                     timer: ques.timer,
-                    score: quizData.users[userId]?.score || 0, 
+                    score: quizData.users[userId]?.totalScore || 0, 
                 });
             });
 
@@ -137,8 +180,8 @@ export const quizLive = async (req, res) => {
                 if (answer === ques.answer) {
                     score += ques.score;
                 }
-
-                user.score += score;
+                user.ques.push({score});
+                user.totalScore += score;
                 user.totalSubmissionTime += submitTime;
 
                 quizData.currentQues++;

@@ -42,9 +42,19 @@ const QuizSchema = new mongoose.Schema(
           type: mongoose.Schema.Types.ObjectId,
           ref: "User",
         },
-        rank: {
+        score: {
           type: Number,
         },
+        submissionTime: {
+          type: Date,
+        },
+        question:[
+          {
+            score:{
+              type: Number,
+            }
+          }
+        ]
       },
     ],
   },
